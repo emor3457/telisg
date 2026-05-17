@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { syncData } from '../services/syncService';
+
 export interface ObservationItem {
   id: string;
   displayId: string;
@@ -21,10 +23,13 @@ export const useObservationStore = create<ObservationStore>()(
   persist(
     (set) => ({
       observations: [],
-      addObservation: (obs) =>
+      addObservation: (obs) => {
         set((state) => ({
           observations: [obs, ...state.observations],
-        })),
+        }));
+        // Arka planda senkronize et
+        setTimeout(() => syncData(), 500);
+      },
       removeObservation: (id) =>
         set((state) => ({
           observations: state.observations.filter((obs) => obs.id !== id),

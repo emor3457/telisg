@@ -1,10 +1,11 @@
 import { useState, useMemo } from 'react';
-import { View, StyleSheet, TouchableOpacity, Text, TextInput } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Text, TextInput, Alert } from 'react-native';
 import { SwipeListView } from 'react-native-swipe-list-view';
 import { Ionicons } from '@expo/vector-icons';
 import ActionCard from '../../components/ActionCard';
 import { useActionStore } from '../../store/actionStore';
 import { useAuth } from '../../context/AuthContext';
+import { colors } from '../../theme/colors';
 
 export default function ActionsScreen() {
   const { user } = useAuth();
@@ -23,49 +24,78 @@ export default function ActionsScreen() {
     );
   }, [actions, searchQuery]);
 
+  const onComplete = (id: string) => {
+    updateActionStatus(id, 'Tamamlandı');
+  };
+
+  const onDelete = (id: string) => {
+    Alert.alert(
+      'Aksiyonu Sil',
+      'Bu aksiyonu silmek istediğinize emin misiniz?',
+      [
+        { text: 'Vazgeç', style: 'cancel' },
+        { text: 'Sil', style: 'destructive', onPress: () => deleteAction(id) },
+      ]
+    );
+  };
+
+  const onStart = (id: string) => {
+    updateActionStatus(id, 'Devam Ediyor');
+  };
+
   const renderHiddenItem = (data: any) => (
     <View style={styles.hiddenContainer}>
-      {data.item.status !== 'Tamamlandı' && (
-        <TouchableOpacity
-          style={[styles.hiddenButton, { backgroundColor: '#16A34A' }]}
-          onPress={() => updateActionStatus(data.item.id, 'Tamamlandı')}
-        >
-          <Text style={styles.hiddenText}>Tamamla</Text>
-        </TouchableOpacity>
-      )}
-      {data.item.status === 'Bekliyor' && (
-        <TouchableOpacity
-          style={[styles.hiddenButton, { backgroundColor: '#0EA5E9' }]}
-          onPress={() => updateActionStatus(data.item.id, 'Devam Ediyor')}
-        >
-          <Text style={styles.hiddenText}>Başla</Text>
-        </TouchableOpacity>
-      )}
-      {user?.role === 'admin' && (
-        <TouchableOpacity
-          style={[styles.hiddenButton, { backgroundColor: '#EF4444' }]}
-          onPress={() => deleteAction(data.item.id)}
-        >
-          <Text style={styles.hiddenText}>Sil</Text>
-        </TouchableOpacity>
-      )}
+      <View style={styles.leftHiddenContainer}>
+        {data.item.status === 'Bekliyor' && (
+          <TouchableOpacity
+            style={[styles.hiddenButton, styles.startButton]}
+            onPress={() => onStart(data.item.id)}
+          >
+            <Ionicons name="play" size={28} color="white" />
+            <Text style={styles.hiddenText}>Başlat</Text>
+          </TouchableOpacity>
+        )}
+        
+        {data.item.status !== 'Tamamlandı' && (
+          <TouchableOpacity
+            style={[styles.hiddenButton, styles.completeButton]}
+            onPress={() => onComplete(data.item.id)}
+          >
+            <Ionicons name="checkmark-done" size={28} color="white" />
+            <Text style={styles.hiddenText}>Tamamla</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
+      <TouchableOpacity
+        style={[styles.hiddenButton, styles.deleteButton]}
+        onPress={() => onDelete(data.item.id)}
+      >
+        <Ionicons name="trash" size={28} color="white" />
+        <Text style={styles.hiddenText}>Sil</Text>
+      </TouchableOpacity>
     </View>
   );
 
   return (
     <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Aksiyon Takibi</Text>
+        <Text style={styles.subtitle}>{actions.length} Aktif Görev</Text>
+      </View>
+
       <View style={styles.searchContainer}>
-        <Ionicons name="search" size={20} color="#6B7280" style={styles.searchIcon} />
+        <Ionicons name="search" size={20} color={colors.muted} style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
-          placeholder="Aksiyon ara (Başlık, ID veya Durum)"
+          placeholder="Aksiyon ara..."
           value={searchQuery}
           onChangeText={setSearchQuery}
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={colors.muted}
         />
         {searchQuery.length > 0 && (
           <TouchableOpacity onPress={() => setSearchQuery('')}>
-            <Ionicons name="close-circle" size={20} color="#9CA3AF" />
+            <Ionicons name="close-circle" size={20} color={colors.muted} />
           </TouchableOpacity>
         )}
       </View>
@@ -77,8 +107,11 @@ export default function ActionsScreen() {
           <ActionCard item={item} />
         )}
         renderHiddenItem={renderHiddenItem}
-        rightOpenValue={-150}
-        disableRightSwipe
+        leftOpenValue={200}
+        rightOpenValue={-100}
+        previewRowKey={'0'}
+        previewOpenValue={-40}
+        previewOpenDelay={3000}
       />
     </View>
   );
@@ -87,22 +120,35 @@ export default function ActionsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.background,
     padding: 16,
+  },
+  header: {
+    marginBottom: 20,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: colors.text,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: colors.muted,
+    marginTop: 4,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'white',
-    borderRadius: 12,
+    borderRadius: 16,
     paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 16,
-    elevation: 2,
+    paddingVertical: 12,
+    marginBottom: 20,
+    elevation: 3,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 2,
+    shadowRadius: 4,
   },
   searchIcon: {
     marginRight: 8,
@@ -110,26 +156,46 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 16,
-    color: '#111827',
+    color: colors.text,
   },
   hiddenContainer: {
     flex: 1,
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
     borderRadius: 12,
-    overflow: 'hidden',
+  },
+  leftHiddenContainer: {
+    flexDirection: 'row',
+    height: '100%',
   },
   hiddenButton: {
-    width: 75,
+    width: 100,
     height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
+    borderRadius: 12,
+  },
+  startButton: {
+    backgroundColor: colors.accentBlue,
+    borderTopRightRadius: 0,
+    borderBottomRightRadius: 0,
+  },
+  completeButton: {
+    backgroundColor: colors.success,
+    borderTopLeftRadius: 0,
+    borderBottomLeftRadius: 0,
+  },
+  deleteButton: {
+    backgroundColor: colors.danger,
   },
   hiddenText: {
     color: 'white',
-    fontWeight: '600',
-    fontSize: 14,
+    fontWeight: '700',
+    fontSize: 12,
+    marginTop: 4,
   },
 });
+
+

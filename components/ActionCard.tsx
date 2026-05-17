@@ -39,7 +39,7 @@ export default function ActionCard({ item }: Props) {
   }
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, { borderLeftColor: slaColor }]}>
       <View style={styles.headerRow}>
         {item.displayId && <Text style={styles.idText}>{item.displayId}</Text>}
         <View style={[styles.slaBadge, { backgroundColor: slaColor }]}>
@@ -59,6 +59,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderRadius: 12,
     elevation: 2,
+    borderLeftWidth: 6,
   },
   headerRow: {
     flexDirection: 'row',

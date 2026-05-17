@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, TextInput, StyleSheet, Text } from 'react-native';
+import { View, TextInput, StyleSheet, Text, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import PrimaryButton from '../../components/PrimaryButton';
 import { useAuth } from '../../context/AuthContext';
@@ -7,12 +7,17 @@ import { useAuth } from '../../context/AuthContext';
 export default function SignInScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const { signIn } = useAuth();
 
   const handleSignIn = async () => {
-    // Basic validation
-    if (!email || !password) return;
+    if (!email || !password) {
+      alert('Lütfen e-posta ve şifrenizi girin.');
+      return;
+    }
+    setLoading(true);
     await signIn(email, password);
+    setLoading(false);
   };
 
   return (
@@ -36,10 +41,14 @@ export default function SignInScreen() {
         style={styles.input}
       />
 
-      <PrimaryButton
-        title="Devam Et"
-        onPress={handleSignIn}
-      />
+      {loading ? (
+        <ActivityIndicator size="large" color="#0F766E" />
+      ) : (
+        <PrimaryButton
+          title="Devam Et"
+          onPress={handleSignIn}
+        />
+      )}
 
       <Text
         style={styles.link}

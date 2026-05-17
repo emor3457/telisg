@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { syncData } from '../services/syncService';
+
 interface ActionItem {
   id: string;
   displayId: string;
@@ -22,16 +24,20 @@ export const useActionStore = create<ActionStore>()(
   persist(
     (set) => ({
       actions: [],
-      addAction: (action) =>
+      addAction: (action) => {
         set((state) => ({
           actions: [...state.actions, action],
-        })),
-      updateActionStatus: (id, newStatus) =>
+        }));
+        setTimeout(() => syncData(), 500);
+      },
+      updateActionStatus: (id, newStatus) => {
         set((state) => ({
           actions: state.actions.map(action => 
             action.id === id ? { ...action, status: newStatus } : action
           )
-        })),
+        }));
+        setTimeout(() => syncData(), 500);
+      },
       deleteAction: (id) =>
         set((state) => ({
           actions: state.actions.filter((action) => action.id !== id),
