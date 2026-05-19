@@ -12,6 +12,11 @@ export interface ObservationItem {
   imageUri: string | null;
   imageBase64: string | null;  // PDF için base64 versiyonu
   date: string;
+  // Yeni alanlar (v1.2.2)
+  location?: string;        // Ana lokasyon
+  subLocation?: string;     // Alt lokasyon
+  department?: string;      // Sorumlu departman
+  activity?: string;        // Faaliyet türü
 }
 
 interface ObservationStore {
@@ -37,6 +42,12 @@ export const useObservationStore = create<ObservationStore>()(
         set((state) => ({
           observations: state.observations.filter((obs) => obs.id !== id),
         }));
+        // İlgili aksiyonları da sil (cascade delete)
+        setTimeout(() => {
+          import('../store/actionStore').then((m) => {
+            m.useActionStore.getState().removeByParentObservationId(id);
+          });
+        }, 100);
         // Silme işlemini sunucuya bildir
         setTimeout(() => deleteRemoteObservation(id), 500);
       },
