@@ -71,8 +71,10 @@ Projeyi yerel ortamınızda çalıştırmak için aşağıdaki adımları izleyi
     ```sh
     npm install
     ```
-4.  Gerekirse Gemini API Anahtarını ayarlayın
-    *   `.env` dosyasını açıp `EXPO_PUBLIC_GEMINI_API_KEY` alanına kendi anahtarınızı girebilirsiniz. (Repo'da tanımlı olan anahtar test amaçlıdır).
+4.  Gemini API Anahtarını ayarlayın
+    *   Proje kökünde `.env` adında bir dosya oluşturup `EXPO_PUBLIC_GEMINI_API_KEY="BURAYA_KENDI_ANAHTARINIZI_GIRIN"` satırını ekleyin.
+    *   Anahtarı [Google AI Studio](https://aistudio.google.com/app/apikey) adresinden ücretsiz alabilirsiniz.
+    *   ⚠️ `.env` dosyasını asla GitHub'a push etmeyin. `.gitignore` tarafından zaten korunmaktadır.
 5.  Uygulamayı başlatın
     ```sh
     npm start
