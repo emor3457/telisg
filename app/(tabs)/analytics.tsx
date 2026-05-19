@@ -1,6 +1,5 @@
-import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
 import { PieChart, BarChart } from 'react-native-chart-kit';
-import { useState } from 'react';
 import { useObservationStore } from '../../store/observationStore';
 import { useActionStore } from '../../store/actionStore';
 import { colors } from '../../theme/colors';
@@ -10,21 +9,9 @@ const screenWidth = Dimensions.get('window').width;
 export default function AnalyticsScreen() {
   const observations = useObservationStore((state) => state.observations);
   const actions = useActionStore((state) => state.actions);
-  const [isDemoMode, setIsDemoMode] = useState(false);
 
-  // Veri Kontrolü
-  const hasData = observations.length > 0 || actions.length > 0;
-  const showDemo = isDemoMode || !hasData;
-
-  // --- Veri Hazırlığı ---
-
-  // Gözlemler (Risk Dağılımı)
-  const stats = showDemo ? {
-    critical: 5,
-    high: 12,
-    medium: 8,
-    low: 15
-  } : {
+  // --- Gerçek Verilerden Hesaplama ---
+  const stats = {
     critical: observations.filter(o => o.riskLevel === 'CRITICAL').length,
     high: observations.filter(o => o.riskLevel === 'HIGH').length,
     medium: observations.filter(o => o.riskLevel === 'MEDIUM').length,
@@ -38,16 +25,13 @@ export default function AnalyticsScreen() {
     { name: 'Düşük', population: stats.low, color: colors.success, legendFontColor: colors.text, legendFontSize: 12 },
   ].filter(d => d.population > 0);
 
-  // Aksiyonlar (Durum Dağılımı)
-  const actionStats = showDemo ? {
-    pending: 10,
-    inProgress: 14,
-    completed: 25
-  } : {
+  const actionStats = {
     pending: actions.filter(a => a.status === 'Bekliyor').length,
     inProgress: actions.filter(a => a.status === 'Devam Ediyor').length,
     completed: actions.filter(a => a.status === 'Tamamlandı').length,
   };
+
+  const hasActionData = actionStats.pending + actionStats.inProgress + actionStats.completed > 0;
 
   const barData = {
     labels: ['Bekliyor', 'Devam Eden', 'Tamamlanan'],
@@ -61,8 +45,8 @@ export default function AnalyticsScreen() {
   const chartConfig = {
     backgroundGradientFrom: '#ffffff',
     backgroundGradientTo: '#ffffff',
-    color: (opacity = 1) => `rgba(20, 20, 19, ${opacity})`, // primary color
-    labelColor: (opacity = 1) => `rgba(20, 20, 19, ${opacity})`,
+    color: (opacity = 1) => `rgba(15, 118, 110, ${opacity})`,
+    labelColor: (opacity = 1) => `rgba(107, 114, 128, ${opacity})`,
     strokeWidth: 2,
     barPercentage: 0.7,
     useShadowColorFromDataset: false,
@@ -72,18 +56,24 @@ export default function AnalyticsScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.header}>
-        <View>
-          <Text style={styles.title}>İSG Analitik</Text>
-          <Text style={styles.subtitle}>{showDemo ? '📊 Demo Verileri Gösteriliyor' : '📈 Gerçek Zamanlı Veriler'}</Text>
+        <Text style={styles.title}>İSG Analitik</Text>
+        <Text style={styles.subtitle}>📈 Gerçek Zamanlı Veriler</Text>
+      </View>
+
+      {/* Özet Kartları */}
+      <View style={styles.summaryGrid}>
+        <View style={[styles.summaryItem, { borderLeftColor: colors.accentOrange }]}>
+          <Text style={styles.summaryLabel}>Toplam Gözlem</Text>
+          <Text style={styles.summaryValue}>{observations.length}</Text>
         </View>
-        {hasData && (
-          <TouchableOpacity 
-            style={[styles.demoBadge, isDemoMode && styles.demoBadgeActive]} 
-            onPress={() => setIsDemoMode(!isDemoMode)}
-          >
-            <Text style={styles.demoBadgeText}>{isDemoMode ? 'Gerçeğe Dön' : 'Demo Modu'}</Text>
-          </TouchableOpacity>
-        )}
+        <View style={[styles.summaryItem, { borderLeftColor: colors.accentBlue }]}>
+          <Text style={styles.summaryLabel}>Aktif Aksiyon</Text>
+          <Text style={styles.summaryValue}>{actionStats.pending + actionStats.inProgress}</Text>
+        </View>
+        <View style={[styles.summaryItem, { borderLeftColor: colors.success }]}>
+          <Text style={styles.summaryLabel}>Tamamlanan</Text>
+          <Text style={styles.summaryValue}>{actionStats.completed}</Text>
+        </View>
       </View>
 
       {/* Risk Dağılımı Kartı */}
@@ -102,7 +92,9 @@ export default function AnalyticsScreen() {
           />
         ) : (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>Veri bulunamadı.</Text>
+            <Text style={styles.emptyIcon}>📊</Text>
+            <Text style={styles.emptyTitle}>Henüz Gözlem Yok</Text>
+            <Text style={styles.emptyText}>Kamera ile ilk saha gözlemini kaydedin.</Text>
           </View>
         )}
       </View>
@@ -110,30 +102,26 @@ export default function AnalyticsScreen() {
       {/* Aksiyon Durumları Kartı */}
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Aksiyon İzleme (DÖF)</Text>
-        <BarChart
-          data={barData}
-          width={screenWidth - 64}
-          height={220}
-          yAxisLabel=""
-          yAxisSuffix=""
-          fromZero
-          chartConfig={chartConfig}
-          verticalLabelRotation={0}
-          style={styles.barChart}
-          showValuesOnTopOfBars
-        />
-      </View>
-
-      {/* Özet Kartları */}
-      <View style={styles.summaryGrid}>
-        <View style={[styles.summaryItem, { borderLeftColor: colors.accentOrange }]}>
-          <Text style={styles.summaryLabel}>Toplam Gözlem</Text>
-          <Text style={styles.summaryValue}>{showDemo ? '40' : observations.length}</Text>
-        </View>
-        <View style={[styles.summaryItem, { borderLeftColor: colors.accentBlue }]}>
-          <Text style={styles.summaryLabel}>Aktif Aksiyon</Text>
-          <Text style={styles.summaryValue}>{showDemo ? '24' : actionStats.pending + actionStats.inProgress}</Text>
-        </View>
+        {hasActionData ? (
+          <BarChart
+            data={barData}
+            width={screenWidth - 64}
+            height={220}
+            yAxisLabel=""
+            yAxisSuffix=""
+            fromZero
+            chartConfig={chartConfig}
+            verticalLabelRotation={0}
+            style={styles.barChart}
+            showValuesOnTopOfBars
+          />
+        ) : (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyIcon}>📋</Text>
+            <Text style={styles.emptyTitle}>Henüz Aksiyon Yok</Text>
+            <Text style={styles.emptyText}>Gözlemlerden aksiyon oluşturulduğunda burada görünecek.</Text>
+          </View>
+        )}
       </View>
 
       <View style={{ height: 40 }} />
@@ -150,10 +138,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 24,
+    marginBottom: 20,
   },
   title: {
     fontSize: 32,
@@ -165,22 +150,34 @@ const styles = StyleSheet.create({
     color: colors.muted,
     marginTop: 4,
   },
-  demoBadge: {
-    backgroundColor: colors.surface,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+  summaryGrid: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 20,
+  },
+  summaryItem: {
+    flex: 1,
+    backgroundColor: 'white',
+    padding: 14,
     borderRadius: 20,
-    borderWidth: 1,
-    borderColor: colors.secondary,
+    borderLeftWidth: 5,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
   },
-  demoBadgeActive: {
-    backgroundColor: colors.accentOrange,
-    borderColor: colors.accentOrange,
+  summaryLabel: {
+    fontSize: 11,
+    color: colors.muted,
+    fontWeight: '600',
+    textTransform: 'uppercase',
   },
-  demoBadgeText: {
-    fontSize: 12,
-    fontWeight: '700',
+  summaryValue: {
+    fontSize: 26,
+    fontWeight: '800',
     color: colors.text,
+    marginTop: 4,
   },
   card: {
     backgroundColor: 'white',
@@ -204,36 +201,25 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     paddingRight: 40,
   },
-  summaryGrid: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  summaryItem: {
-    flex: 1,
-    backgroundColor: 'white',
-    padding: 16,
-    borderRadius: 20,
-    borderLeftWidth: 6,
-    elevation: 2,
-  },
-  summaryLabel: {
-    fontSize: 12,
-    color: colors.muted,
-    fontWeight: '600',
-  },
-  summaryValue: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: colors.text,
-    marginTop: 4,
-  },
   emptyContainer: {
-    height: 150,
+    height: 160,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  emptyText: {
-    color: colors.muted,
+  emptyIcon: {
+    fontSize: 36,
+    marginBottom: 8,
+  },
+  emptyTitle: {
     fontSize: 16,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 4,
+  },
+  emptyText: {
+    fontSize: 13,
+    color: colors.muted,
+    textAlign: 'center',
+    paddingHorizontal: 20,
   },
 });
