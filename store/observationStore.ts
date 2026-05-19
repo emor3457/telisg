@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { syncData } from '../services/syncService';
+
 
 export interface ObservationItem {
   id: string;
@@ -10,6 +10,7 @@ export interface ObservationItem {
   riskLevel: string;
   controls: string[];
   imageUri: string | null;
+  imageBase64: string | null;  // PDF için base64 versiyonu
   date: string;
 }
 
@@ -28,12 +29,17 @@ export const useObservationStore = create<ObservationStore>()(
           observations: [obs, ...state.observations],
         }));
         // Arka planda senkronize et
-        setTimeout(() => syncData(), 500);
+        setTimeout(() => {
+          import('../services/syncService').then((m) => m.syncData());
+        }, 500);
       },
-      removeObservation: (id) =>
+      removeObservation: (id) => {
         set((state) => ({
           observations: state.observations.filter((obs) => obs.id !== id),
-        })),
+        }));
+        // Silme işlemini sunucuya bildir
+        setTimeout(() => deleteRemoteObservation(id), 500);
+      },
     }),
     {
       name: 'observation-storage',
@@ -41,3 +47,19 @@ export const useObservationStore = create<ObservationStore>()(
     }
   )
 );
+
+async function deleteRemoteObservation(id: string) {
+  try {
+    const { supabase } = await import('../services/supabase');
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    await supabase
+      .from('observations')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', session.user.id);
+  } catch (error) {
+    console.error('Remote delete error:', error);
+  }
+}

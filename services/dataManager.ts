@@ -82,9 +82,27 @@ export const importData = async () => {
 
 export const clearAllData = async () => {
   try {
-    // We can't directly call "clear" on Zustand persist if we haven't exposed it,
-    // so we'll just empty the arrays using the store's methods (assuming we have them).
-    // Let's manually trigger resets.
+    const { supabase } = await import('./supabase');
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (session) {
+      // Supabase'den sil
+      const { error: obsError } = await supabase
+        .from('observations')
+        .delete()
+        .eq('user_id', session.user.id);
+      
+      const { error: actionError } = await supabase
+        .from('actions')
+        .delete()
+        .eq('user_id', session.user.id);
+
+      if (obsError || actionError) {
+        console.error('Remote clear error:', obsError || actionError);
+      }
+    }
+
+    // Yerel store'ları temizle
     useObservationStore.setState({ observations: [] });
     useActionStore.setState({ actions: [] });
     return true;

@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { SwipeListView } from 'react-native-swipe-list-view';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -54,14 +54,26 @@ export default function ObservationsScreen() {
 
   const renderHiddenItem = (data: any) => (
     <View style={styles.hiddenContainer}>
-      {user?.role === 'admin' && (
-        <TouchableOpacity
-          style={[styles.hiddenButton, { backgroundColor: '#EF4444' }]}
-          onPress={() => removeObservation(data.item.id)}
-        >
-          <Text style={styles.hiddenText}>Sil</Text>
-        </TouchableOpacity>
-      )}
+      <TouchableOpacity
+        style={[styles.hiddenButton, { backgroundColor: '#EF4444' }]}
+        onPress={() => {
+          Alert.alert(
+            'Gözlemi Sil',
+            'Bu gözlemi kalıcı olarak silmek istediğinize emin misiniz?',
+            [
+              { text: 'İptal', style: 'cancel' },
+              {
+                text: 'Evet, Sil',
+                style: 'destructive',
+                onPress: () => removeObservation(data.item.id),
+              },
+            ]
+          );
+        }}
+      >
+        <Ionicons name="trash-outline" size={24} color="white" />
+        <Text style={styles.hiddenText}>Sil</Text>
+      </TouchableOpacity>
     </View>
   );
 
