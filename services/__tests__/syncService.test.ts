@@ -27,9 +27,24 @@ jest.mock('../../store/imageStore', () => ({
   },
 }));
 
+jest.mock('expo-task-manager', () => ({
+  defineTask: jest.fn(),
+  isTaskRegisteredAsync: jest.fn(),
+}));
+
+jest.mock('expo-background-fetch', () => ({
+  registerTaskAsync: jest.fn(),
+  BackgroundFetchResult: {
+    NewData: 1,
+    NoData: 2,
+    Failed: 3,
+  },
+}));
+
 describe('syncService - uploadFileWithSignedUrl', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useFakeTimers();
     global.fetch = jest.fn().mockResolvedValue({
       blob: jest.fn().mockResolvedValue(new Blob(['test'], { type: 'image/jpeg' })),
     });
@@ -37,6 +52,7 @@ describe('syncService - uploadFileWithSignedUrl', () => {
 
   afterEach(() => {
     jest.restoreAllMocks();
+    jest.useRealTimers();
   });
 
   it('should upload file successfully using signed URL', async () => {
@@ -59,15 +75,17 @@ describe('syncService - uploadFileWithSignedUrl', () => {
         updatePhotoStatus: jest.fn(),
     });
 
-    await uploadFileWithSignedUrl('photo-1', 'file://test.jpg', 'observations/photo-1.jpg');
+    const promise = uploadFileWithSignedUrl('photo-1', 'file://test.jpg', 'observations/photo-1.jpg');
+    jest.runAllTimers();
+    await promise;
 
     expect(mockCreateSignedUrl).toHaveBeenCalledWith('observations/photo-1.jpg');
     expect(mockUploadToSignedUrl).toHaveBeenCalledWith('https://signed-url.com', expect.any(Object));
   });
 
-  it('should handle upload failure', async () => {
+  it('should handle upload failure with retries', async () => {
     (supabase.auth.getSession as jest.Mock).mockResolvedValue({ data: { session: { user: { id: '1' } } } });
-    
+
     const mockCreateSignedUrl = jest.fn().mockResolvedValue({
       data: null,
       error: { message: 'Failed to create signed URL' },
@@ -77,7 +95,15 @@ describe('syncService - uploadFileWithSignedUrl', () => {
       createSignedUploadUrl: mockCreateSignedUrl,
     });
 
-    await expect(uploadFileWithSignedUrl('photo-1', 'file://test.jpg', 'observations/photo-1.jpg'))
-      .rejects.toThrow('Failed to create signed URL');
-  });
+    const promise = uploadFileWithSignedUrl('photo-1', 'file://test.jpg', 'observations/photo-1.jpg');
+
+    // Fast-forward through retries
+    for(let i=0; i<4; i++) {
+        jest.runAllTimers();
+        await Promise.resolve(); // allow promises to resolve
+    }
+
+    await expect(promise).rejects.toThrow('Failed to create signed URL');
+    expect(mockCreateSignedUrl).toHaveBeenCalledTimes(4); // initial + 3 retries
+  }, 10000);
 });
