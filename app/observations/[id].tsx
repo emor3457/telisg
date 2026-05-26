@@ -14,6 +14,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system';
 import PrimaryButton from '../../components/PrimaryButton';
+import PhotoGallery from '../../components/PhotoGallery';
 import { useImageStore } from '../../store/imageStore';
 import { useObservationStore } from '../../store/observationStore';
 import { useActionStore } from '../../store/actionStore';
@@ -83,7 +84,7 @@ export default function ObservationDetailScreen() {
       hazard: analysis.hazard,
       riskLevel: analysis.riskLevel,
       controls: analysis.controls,
-      photos: [currentPhoto], // Use photos array
+      photos: photos, // Use all photos from the store
       timestamp: Date.now(),
       date: detectionDate,
       location: params.lat ? {
@@ -120,10 +121,7 @@ export default function ObservationDetailScreen() {
 
   return (
     <ScrollView style={styles.container}>
-      <Image
-        source={{ uri: currentPhoto?.uri || 'https://picsum.photos/400' }}
-        style={styles.image}
-      />
+      <PhotoGallery />
 
       <Text style={styles.sectionTitle}>Yapay Zeka Tehlike Analizi</Text>
       <Text style={styles.dateLabel}>
