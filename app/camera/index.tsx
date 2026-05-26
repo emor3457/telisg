@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
 import { useImageStore } from '../../store/imageStore';
+import { getCurrentLocation } from '../../services/locationService';
 
 export default function CameraScreen() {
   const [permission, requestPermission] = useCameraPermissions();
@@ -29,12 +30,32 @@ export default function CameraScreen() {
     if (cameraRef.current) {
       const photo = await cameraRef.current.takePictureAsync({
         quality: 0.7,
-        base64: true,
       });
       
-      if (photo && photo.base64) {
-        useImageStore.getState().setCurrentImage(photo.uri, photo.base64);
-        router.replace('/observations/1');
+      if (photo) {
+        // Capture location
+        let location = null;
+        try {
+          location = await getCurrentLocation();
+        } catch (e) {
+          console.warn('Location capture failed', e);
+        }
+
+        useImageStore.getState().addPhoto({
+          id: Date.now().toString(),
+          uri: photo.uri,
+          status: 'pending',
+        });
+        
+        // Pass location via router params
+        router.replace({
+          pathname: '/observations/1',
+          params: { 
+            lat: location?.latitude,
+            lon: location?.longitude,
+            alt: location?.altitude
+          }
+        });
       }
     }
   };

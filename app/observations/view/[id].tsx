@@ -36,16 +36,30 @@ export default function ViewObservationScreen() {
                   : observation.riskLevel === 'MEDIUM' ? 'ORTA' 
                   : 'DÜŞÜK';
 
+  // İlk fotoğrafı al veya fallback göster
+  const mainImageUri = observation.photos && observation.photos.length > 0 
+    ? observation.photos[0].uri 
+    : 'https://picsum.photos/400';
+
   return (
     <ScrollView style={styles.container}>
       <Image
-        source={{ uri: observation.imageUri || 'https://picsum.photos/400' }}
+        source={{ uri: mainImageUri }}
         style={styles.image}
       />
 
       <Text style={styles.sectionTitle}>{observation.displayId || 'Saha Gözlem Detayı'}</Text>
       
       <Text style={styles.dateLabel}>Tespit Tarihi: {new Date(observation.date).toLocaleString('tr-TR')}</Text>
+
+      {observation.location && (
+        <View style={styles.locationContainer}>
+          <Text style={styles.locationText}>
+            GPS: {observation.location.latitude.toFixed(6)}, {observation.location.longitude.toFixed(6)}
+            {observation.location.altitude ? ` (Alt: ${observation.location.altitude.toFixed(1)}m)` : ''}
+          </Text>
+        </View>
+      )}
 
       <Text style={styles.label}>Tespit Edilen Tehlike</Text>
       <Text style={styles.value}>{observation.hazard}</Text>
@@ -121,6 +135,19 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     marginBottom: 8,
+  },
+  locationContainer: {
+    backgroundColor: '#E0F2F1',
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: '#0F766E',
+  },
+  locationText: {
+    fontSize: 13,
+    color: '#0F766E',
+    fontWeight: '600',
   },
   center: {
     flex: 1,

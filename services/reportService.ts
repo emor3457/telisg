@@ -1,5 +1,6 @@
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
+import * as FileSystem from 'expo-file-system';
 
 import { ObservationItem } from '../store/observationStore';
 import { useSettingsStore } from '../store/settingsStore';
@@ -176,8 +177,19 @@ export async function generateObservationPDF(observation: ObservationItem) {
     : observation.riskLevel === 'HIGH' ? 'YÜKSEK'
     : observation.riskLevel === 'MEDIUM' ? 'ORTA' : 'DÜŞÜK';
 
-  // Kaydedilmiş base64 verisini direkt kullan (file:// path çalışmaz)
-  const imageBase64 = observation.imageBase64 || null;
+  // Resim dizisinden ilkini al ve base64'e çevir (PDF için)
+  let imageBase64 = null;
+  if (observation.photos && observation.photos.length > 0) {
+    try {
+      const firstPhotoUri = observation.photos[0].uri;
+      const base64Content = await FileSystem.readAsStringAsync(firstPhotoUri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+      imageBase64 = `data:image/jpeg;base64,${base64Content}`;
+    } catch (error) {
+      console.warn('PDF için resim dönüştürme hatası:', error);
+    }
+  }
 
   const html = `
     <html>
