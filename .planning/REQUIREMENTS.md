@@ -79,16 +79,16 @@
 | FR 4.2 | Phase 1 | Completed |
 | FR 4.3 | Phase 4 | Pending |
 | FR 5.1 | Phase 1 | Completed |
-| FR 5.2 | Phase 1 | Pending |
-| FR 5.3 | Phase 1 | Pending |
+| FR 5.2 | Phase 1 | Completed |
+| FR 5.3 | Phase 1 | Completed |
 | NFR 1.1 | Phase 2 | Pending |
 | NFR 1.2 | Phase 3 | Pending |
 | NFR 1.3 | Phase 1 | Completed |
-| NFR 2.1 | Phase 1 | Pending |
+| NFR 2.1 | Phase 1 | Completed |
 | NFR 2.2 | Phase 1 | Completed |
 | NFR 3.1 | Phase 2 | Pending |
 | NFR 3.2 | (Cross-cutting) | N/A |
-| NFR 4.1 | Phase 1 | Pending |
+| NFR 4.1 | Phase 1 | Completed |
 | NFR 4.2 | Phase 3 | Pending |
 | UX 1.1 | Phase 2 | Pending |
 | UX 1.2 | Phase 3 | Pending |

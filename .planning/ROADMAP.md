@@ -2,7 +2,7 @@
 
 ## Phases
 
-- [ ] **Phase 1: Foundation (Multi-photo & Storage)** - Core multi-photo capture flow, persistent local storage, and background synchronization plumbing.
+- [x] **Phase 1: Foundation (Multi-photo & Storage)** - Core multi-photo capture flow, persistent local storage, and background synchronization plumbing.
 - [ ] **Phase 2: Annotation (Skia)** - Professional image annotation tools using React Native Skia for highlighting hazards and adding context.
 - [ ] **Phase 3: Intelligence (Gemini AI)** - Integration with Gemini Pro Vision for automated hazard detection, risk scoring, and localized analysis.
 - [ ] **Phase 4: Context & Reporting** - Enrichment with departmental metadata, watermarked exports, and integration with the primary observation feed.
@@ -23,7 +23,7 @@
 **Plans**: 3 plans
 - [x] 01-01-PLAN.md — Refactor data layer for multi-photo and local persistence.
 - [x] 01-02-PLAN.md — Enhance camera flow and build multi-photo gallery UI.
-- [ ] 01-03-PLAN.md — Implement background sync infrastructure with Supabase.
+- [x] 01-03-PLAN.md — Implement background sync infrastructure with Supabase.
 **UI hint**: yes
 
 ### Phase 2: Annotation (Skia)
@@ -67,7 +67,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 3/3 | Ready | - |
+| 1. Foundation | 3/3 | Done | 2026-05-26 |
 | 2. Annotation | 0/0 | Not started | - |
 | 3. Intelligence | 0/0 | Not started | - |
 | 4. Context & Reporting | 0/0 | Not started | - |
