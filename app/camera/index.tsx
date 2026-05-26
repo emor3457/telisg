@@ -10,6 +10,8 @@ import { getCurrentLocation } from '../../services/locationService';
 export default function CameraScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView>(null);
+  const photos = useImageStore((state) => state.photos);
+  const addPhoto = useImageStore((state) => state.addPhoto);
 
   if (!permission) {
     return <View />;
@@ -27,6 +29,11 @@ export default function CameraScreen() {
   }
 
   const takePicture = async () => {
+    if (photos.length >= 5) {
+      alert('En fazla 5 fotoğraf çekebilirsiniz.');
+      return;
+    }
+
     if (cameraRef.current) {
       const photo = await cameraRef.current.takePictureAsync({
         quality: 0.7,
@@ -41,35 +48,63 @@ export default function CameraScreen() {
           console.warn('Location capture failed', e);
         }
 
-        useImageStore.getState().addPhoto({
+        addPhoto({
           id: Date.now().toString(),
           uri: photo.uri,
           status: 'pending',
-        });
-        
-        // Pass location via router params
-        router.replace({
-          pathname: '/observations/1',
-          params: { 
-            lat: location?.latitude,
-            lon: location?.longitude,
-            alt: location?.altitude
-          }
+          location: location || undefined,
         });
       }
     }
+  };
+
+  const handleDone = () => {
+    if (photos.length === 0) {
+      alert('Lütfen en az bir fotoğraf çekin.');
+      return;
+    }
+
+    // Pass latest location via router params for observation's main location
+    const latestLocation = photos[photos.length - 1]?.location;
+    
+    router.replace({
+      pathname: '/observations/1',
+      params: { 
+        lat: latestLocation?.latitude,
+        lon: latestLocation?.longitude,
+        alt: latestLocation?.altitude
+      }
+    });
   };
 
   return (
     <View style={styles.container}>
       <CameraView style={styles.camera} ref={cameraRef} facing="back" />
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.closeButton} onPress={() => router.back()}>
-          <Ionicons name="close" size={32} color="white" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.captureButton} onPress={takePicture}>
-          <View style={styles.captureInner} />
-        </TouchableOpacity>
+        <View style={styles.topRow}>
+          <TouchableOpacity style={styles.closeButton} onPress={() => router.back()}>
+            <Ionicons name="close" size={32} color="white" />
+          </TouchableOpacity>
+          {photos.length > 0 && (
+            <TouchableOpacity style={styles.doneButton} onPress={handleDone}>
+              <Text style={styles.doneText}>Tamam ({photos.length})</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        <View style={styles.bottomRow}>
+          <View style={styles.counterContainer}>
+            <Text style={styles.counterText}>{photos.length} / 5</Text>
+          </View>
+          <TouchableOpacity 
+            style={[styles.captureButton, photos.length >= 5 && { opacity: 0.5 }]} 
+            onPress={takePicture}
+            disabled={photos.length >= 5}
+          >
+            <View style={styles.captureInner} />
+          </TouchableOpacity>
+          <View style={styles.placeholder} />
+        </View>
       </View>
     </View>
   );
@@ -91,30 +126,62 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     backgroundColor: 'transparent',
-    flexDirection: 'column',
+    padding: 20,
+    paddingTop: 40,
+    paddingBottom: 40,
     justifyContent: 'space-between',
-    padding: 30,
-    paddingBottom: 50,
     zIndex: 10,
   },
+  topRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  bottomRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+  },
   closeButton: {
-    alignSelf: 'flex-start',
-    marginTop: 40,
+    padding: 10,
+  },
+  doneButton: {
+    backgroundColor: colors.primary,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+  },
+  doneText: {
+    color: 'white',
+    fontWeight: '700',
+    fontSize: 16,
   },
   captureButton: {
-    alignSelf: 'center',
-    width: 70,
-    height: 70,
-    borderRadius: 35,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     backgroundColor: 'rgba(255, 255, 255, 0.3)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   captureInner: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     backgroundColor: 'white',
+  },
+  counterContainer: {
+    width: 60,
+    alignItems: 'center',
+  },
+  counterText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  placeholder: {
+    width: 60,
   },
   text: {
     textAlign: 'center',
