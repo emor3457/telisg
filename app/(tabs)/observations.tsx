@@ -29,7 +29,7 @@ export default function ObservationsScreen() {
       style={styles.card}
     >
       <Image
-        source={{ uri: item.imageUri || 'https://picsum.photos/200' }}
+        source={{ uri: item.photos && item.photos.length > 0 ? item.photos[0].uri : 'https://picsum.photos/200' }}
         style={styles.cardImage}
       />
       <View style={styles.cardContent}>

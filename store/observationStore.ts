@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { PhotoAsset } from './imageStore';
 
 
 export interface ObservationItem {
@@ -9,11 +10,16 @@ export interface ObservationItem {
   hazard: string;
   riskLevel: string;
   controls: string[];
-  imageUri: string | null;
-  imageBase64: string | null;  // PDF için base64 versiyonu
+  photos: PhotoAsset[];
+  location?: {
+    latitude: number;
+    longitude: number;
+    altitude: number | null;
+  };
+  timestamp: number;
   date: string;
   // Yeni alanlar (v1.2.2)
-  location?: string;        // Ana lokasyon
+  location_name?: string;    // Ana lokasyon (renamed from location to avoid conflict)
   subLocation?: string;     // Alt lokasyon
   department?: string;      // Sorumlu departman
   activity?: string;        // Faaliyet türü
@@ -34,22 +40,26 @@ export const useObservationStore = create<ObservationStore>()(
           observations: [obs, ...state.observations],
         }));
         // Arka planda senkronize et
-        setTimeout(() => {
-          import('../services/syncService').then((m) => m.syncData());
-        }, 500);
+        if (process.env.NODE_ENV !== 'test') {
+          setTimeout(() => {
+            import('../services/syncService').then((m) => m.syncData());
+          }, 500);
+        }
       },
       removeObservation: (id) => {
         set((state) => ({
           observations: state.observations.filter((obs) => obs.id !== id),
         }));
         // İlgili aksiyonları da sil (cascade delete)
-        setTimeout(() => {
-          import('../store/actionStore').then((m) => {
-            m.useActionStore.getState().removeByParentObservationId(id);
-          });
-        }, 100);
-        // Silme işlemini sunucuya bildir
-        setTimeout(() => deleteRemoteObservation(id), 500);
+        if (process.env.NODE_ENV !== 'test') {
+          setTimeout(() => {
+            import('../store/actionStore').then((m) => {
+              m.useActionStore.getState().removeByParentObservationId(id);
+            });
+          }, 100);
+          // Silme işlemini sunucuya bildir
+          setTimeout(() => deleteRemoteObservation(id), 500);
+        }
       },
     }),
     {
