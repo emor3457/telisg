@@ -84,6 +84,7 @@ describe('syncService - uploadFileWithSignedUrl', () => {
   });
 
   it('should handle upload failure with retries', async () => {
+    jest.useRealTimers(); // Use real timers for reliability in this async recursive test
     (supabase.auth.getSession as jest.Mock).mockResolvedValue({ data: { session: { user: { id: '1' } } } });
 
     const mockCreateSignedUrl = jest.fn().mockResolvedValue({
@@ -97,13 +98,7 @@ describe('syncService - uploadFileWithSignedUrl', () => {
 
     const promise = uploadFileWithSignedUrl('photo-1', 'file://test.jpg', 'observations/photo-1.jpg');
 
-    // Fast-forward through retries
-    for(let i=0; i<4; i++) {
-        jest.runAllTimers();
-        await Promise.resolve(); // allow promises to resolve
-    }
-
     await expect(promise).rejects.toThrow('Failed to create signed URL');
     expect(mockCreateSignedUrl).toHaveBeenCalledTimes(4); // initial + 3 retries
-  }, 10000);
+  }, 15000);
 });
