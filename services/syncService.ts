@@ -1,6 +1,42 @@
 import { supabase } from './supabase';
 import { useObservationStore, ObservationItem } from '../store/observationStore';
 import { useActionStore } from '../store/actionStore';
+import { useImageStore } from '../store/imageStore';
+
+export const uploadFileWithSignedUrl = async (id: string, uri: string, remotePath: string) => {
+  const { updatePhotoStatus } = useImageStore.getState();
+  
+  try {
+    updatePhotoStatus(id, 'uploading');
+    
+    const { data, error: signedUrlError } = await supabase.storage
+      .from('observations')
+      .createSignedUploadUrl(remotePath);
+    
+    if (signedUrlError || !data) {
+      throw new Error(signedUrlError?.message || 'Failed to create signed URL');
+    }
+    
+    const { signedUrl } = data;
+    
+    const response = await fetch(uri);
+    const blob = await response.blob();
+    
+    const { error: uploadError } = await supabase.storage
+      .from('observations')
+      .uploadToSignedUrl(signedUrl, blob);
+    
+    if (uploadError) {
+      throw uploadError;
+    }
+    
+    updatePhotoStatus(id, 'completed');
+  } catch (error) {
+    updatePhotoStatus(id, 'failed');
+    console.error('Upload failed:', error);
+    throw error;
+  }
+};
 
 export const syncData = async () => {
   try {
