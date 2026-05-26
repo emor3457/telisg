@@ -21,8 +21,8 @@
   3. Observation data and photos are persisted locally immediately upon capture and survive app restarts.
   4. Photos are uploaded to Supabase Storage buckets using background tasks with exponential backoff retry.
 **Plans**: 3 plans
-- [ ] 01-01-PLAN.md — Refactor data layer for multi-photo and local persistence.
-- [ ] 01-02-PLAN.md — Enhance camera flow and build multi-photo gallery UI.
+- [x] 01-01-PLAN.md — Refactor data layer for multi-photo and local persistence.
+- [x] 01-02-PLAN.md — Enhance camera flow and build multi-photo gallery UI.
 - [ ] 01-03-PLAN.md — Implement background sync infrastructure with Supabase.
 **UI hint**: yes
 
@@ -67,7 +67,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/3 | Not started | - |
+| 1. Foundation | 3/3 | Ready | - |
 | 2. Annotation | 0/0 | Not started | - |
 | 3. Intelligence | 0/0 | Not started | - |
 | 4. Context & Reporting | 0/0 | Not started | - |
