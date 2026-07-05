@@ -17,6 +17,7 @@ interface ImageStore {
   removePhoto: (id: string) => void;
   reorderPhotos: (fromIndex: number, toIndex: number) => void;
   updatePhotoStatus: (id: string, status: PhotoAsset['status']) => void;
+  updatePhotoUri: (id: string, newUri: string) => void;
   clearPhotos: () => void;
 }
 
@@ -34,6 +35,10 @@ export const useImageStore = create<ImageStore>((set) => ({
   updatePhotoStatus: (id, status) =>
     set((state) => ({
       photos: state.photos.map((p) => (p.id === id ? { ...p, status } : p)),
+    })),
+  updatePhotoUri: (id, newUri) =>
+    set((state) => ({
+      photos: state.photos.map((p) => (p.id === id ? { ...p, uri: newUri } : p)),
     })),
   clearPhotos: () => set({ photos: [] }),
 }));

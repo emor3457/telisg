@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Image, StyleSheet, TouchableOpacity, ScrollView, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useImageStore, PhotoAsset } from '../store/imageStore';
 import { colors } from '../theme/colors';
 
@@ -8,6 +9,7 @@ export default function PhotoGallery() {
   const photos = useImageStore((state) => state.photos);
   const removePhoto = useImageStore((state) => state.removePhoto);
   const reorderPhotos = useImageStore((state) => state.reorderPhotos);
+  const router = useRouter();
 
   if (photos.length === 0) return null;
 
@@ -31,6 +33,15 @@ export default function PhotoGallery() {
               testID={`remove-photo-${index}`}
             >
               <Ionicons name="close-circle" size={24} color={colors.danger} />
+            </TouchableOpacity>
+
+            {/* Edit Button */}
+            <TouchableOpacity 
+              style={styles.editButton} 
+              onPress={() => router.push(`/annotate/${photo.id}`)}
+              testID={`edit-photo-${index}`}
+            >
+              <Ionicons name="color-wand" size={22} color="white" />
             </TouchableOpacity>
 
             {/* Reorder Controls */}
@@ -92,6 +103,17 @@ const styles = StyleSheet.create({
     right: 5,
     backgroundColor: 'white',
     borderRadius: 12,
+  },
+  editButton: {
+    position: 'absolute',
+    top: 5,
+    right: 35,
+    backgroundColor: colors.primary,
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   indexBadge: {
     position: 'absolute',
