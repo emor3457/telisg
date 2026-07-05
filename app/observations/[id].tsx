@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import PrimaryButton from '../../components/PrimaryButton';
 import PhotoGallery from '../../components/PhotoGallery';
 import { useImageStore } from '../../store/imageStore';
@@ -24,8 +24,53 @@ import { generateDisplayID } from '../../services/idService';
 import { calculateTargetDate } from '../../services/slaService';
 import { colors } from '../../theme/colors';
 
-// ... (SelectModal and SelectRow stay the same)
+function SelectRow({ label, value, placeholder, onPress }: any) {
+  return (
+    <TouchableOpacity style={styles.selectRow} onPress={onPress}>
+      <View style={styles.selectRowLeft}>
+        <Text style={styles.selectLabel}>{label}</Text>
+        {value ? (
+          <Text style={styles.selectValue}>{value}</Text>
+        ) : (
+          <Text style={[styles.selectValue, styles.selectPlaceholder]}>{placeholder}</Text>
+        )}
+      </View>
+      <Ionicons name="chevron-down" size={20} color="#9CA3AF" />
+    </TouchableOpacity>
+  );
+}
 
+function SelectModal({ visible, title, items, onSelect, onClose }: any) {
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={onClose} />
+      <View style={styles.modalSheet}>
+        <View style={styles.modalHeader}>
+          <Text style={styles.modalTitle}>{title}</Text>
+          <TouchableOpacity onPress={onClose}>
+            <Ionicons name="close" size={24} color="#6B7280" />
+          </TouchableOpacity>
+        </View>
+        <FlatList
+          data={items}
+          keyExtractor={(item) => item.value}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.modalItem}
+              onPress={() => {
+                onSelect(item.value);
+                onClose();
+              }}
+            >
+              <Text style={styles.modalItemText}>{item.label}</Text>
+              <Ionicons name="chevron-forward" size={20} color="#D1D5DB" />
+            </TouchableOpacity>
+          )}
+        />
+      </View>
+    </Modal>
+  );
+}
 export default function ObservationDetailScreen() {
   const { photos } = useImageStore();
   const params = useLocalSearchParams();
@@ -36,8 +81,19 @@ export default function ObservationDetailScreen() {
   const [error, setError] = useState<string | null>(null);
   const [detectionDate] = useState(new Date().toISOString());
 
-  // ... (selections stay the same)
+  const [selectedLocation, setSelectedLocation] = useState<string>('');
+  const [selectedSubLocation, setSelectedSubLocation] = useState<string>('');
+  const [selectedDepartment, setSelectedDepartment] = useState<string>('');
+  const [selectedActivity, setSelectedActivity] = useState<string>('');
 
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [showSubLocationModal, setShowSubLocationModal] = useState(false);
+  const [showDepartmentModal, setShowDepartmentModal] = useState(false);
+  const [showActivityModal, setShowActivityModal] = useState(false);
+
+  const subLocationItems = locations
+    .find((l) => l.name === selectedLocation)
+    ?.subLocations.map((s) => ({ label: s.name, value: s.name })) || [];
   const currentPhoto = photos.length > 0 ? photos[0] : null;
 
   useEffect(() => {
@@ -50,7 +106,7 @@ export default function ObservationDetailScreen() {
       try {
         // Read file as base64 for AI analysis
         const base64 = await FileSystem.readAsStringAsync(currentPhoto.uri, {
-          encoding: FileSystem.EncodingType.Base64,
+          encoding: 'base64',
         });
         const result = await analyzeObservation(base64);
         setAnalysis(result);
@@ -115,6 +171,9 @@ export default function ObservationDetailScreen() {
           : undefined,
       });
     });
+
+    // Yeni bir gözleme başlandığında eski fotoğrafların kalmaması için mağazayı temizle
+    useImageStore.getState().clearPhotos();
 
     router.back();
   };
@@ -225,7 +284,7 @@ export default function ObservationDetailScreen() {
         visible={showLocationModal}
         title="Bölüm Seç"
         items={locations.map((l) => ({ label: l.name, value: l.name }))}
-        onSelect={(val) => {
+        onSelect={(val: string) => {
           setSelectedLocation(val);
           setSelectedSubLocation(''); // Alt lokasyonu sıfırla
         }}
@@ -236,7 +295,7 @@ export default function ObservationDetailScreen() {
         visible={showSubLocationModal}
         title="Alt Bölüm Seç"
         items={subLocationItems}
-        onSelect={(val) => setSelectedSubLocation(val)}
+        onSelect={(val: string) => setSelectedSubLocation(val)}
         onClose={() => setShowSubLocationModal(false)}
       />
 
@@ -244,7 +303,7 @@ export default function ObservationDetailScreen() {
         visible={showDepartmentModal}
         title="Sorumlu Departman Seç"
         items={departments.map((d) => ({ label: d.name, value: d.name }))}
-        onSelect={(val) => setSelectedDepartment(val)}
+        onSelect={(val: string) => setSelectedDepartment(val)}
         onClose={() => setShowDepartmentModal(false)}
       />
 
@@ -252,7 +311,7 @@ export default function ObservationDetailScreen() {
         visible={showActivityModal}
         title="Faaliyet Seç"
         items={activities.map((a) => ({ label: a.name, value: a.name }))}
-        onSelect={(val) => setSelectedActivity(val)}
+        onSelect={(val: string) => setSelectedActivity(val)}
         onClose={() => setShowActivityModal(false)}
       />
     </ScrollView>

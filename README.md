@@ -31,20 +31,21 @@
 ## Özellikler
 
 *   📸 **Fotoğraflı Saha Gözlemi:** Anında fotoğraf çekerek veya galeriden seçerek tehlikeleri kayıt altına alma.
-*   🤖 **AI Destekli Risk Analizi:** Google Gemini 2.5 Flash modeli ile görseller üzerinden otomatik tehlike tespiti, risk seviyesi belirleme ve aksiyon önerme.
+*   🤖 **AI Destekli Risk Analizi:** Google Gemini 2.5 Flash modeli ile görseller üzerinden otomatik tehlike tespiti, risk seviyesi belirleme ve aksiyon önerme. Uygulama içinden kendi (Custom) API anahtarınızı girebilme imkanı.
 *   ⏱️ **Dinamik SLA Yönetimi:** Risk seviyelerine göre otomatik hedeflenen kapanış tarihleri (Kritik: 1 Gün, Yüksek: 7 Gün, Orta: 1 Ay, Düşük: 2 Ay).
 *   🔢 **İzlenebilir Kodlama:** Tüm gözlem ve aksiyonların `IST-TT-SG26-XXXX` ve `IST-TT-DF26-XXXX` formatında hiyerarşik olarak kodlanması.
 *   📄 **ISO 45001 Uyumlu Raporlama:** Gözlem ve aksiyonların profesyonel, kurum içi standartlara uygun PDF formatında dışa aktarılması.
-*   🗄️ **Veri Yönetimi:** Local-first mimaride verilerin JSON olarak yedeklenmesi ve geri yüklenmesi.
-*   🎨 **Gelişmiş UX/UI:** Anthropic marka kimliği (Brand Guidelines) ve "Systematic Reverence" tasarım felsefesini yansıtan temiz, odaklı ve profesyonel arayüz (Poppins ve Lora font aileleri).
+*   ☁️ **Supabase Cloud Sync:** Verilerin Supabase veritabanı ve Storage ile eşzamanlı ve güvenli bir şekilde buluta yedeklenmesi (Offline-first yaklaşımıyla birleştirilmiş).
+*   🎨 **Gelişmiş UX/UI:** Temiz, odaklı ve profesyonel arayüz tasarımı.
 
 ## Teknoloji Yığını
 
 *   **Framework:** [React Native](https://reactnative.dev/) / [Expo](https://expo.dev/) (SDK 54)
-*   **Navigasyon:** Expo Router (File-based Routing)
-*   **Durum Yönetimi (State):** [Zustand](https://docs.pmnd.rs/zustand/getting-started/introduction) + AsyncStorage (Persist)
+*   **Navigasyon:** Expo Router
+*   **Durum Yönetimi (State):** [Zustand](https://docs.pmnd.rs/zustand/getting-started/introduction) + AsyncStorage
+*   **Backend (BaaS):** Supabase (PostgreSQL & Storage)
 *   **Yapay Zeka:** `@google/generative-ai` (Gemini API)
-*   **Raporlama & Dosya İşlemleri:** `expo-print`, `expo-sharing`, `expo-file-system`, `expo-document-picker`
+*   **Raporlama & Dosya İşlemleri:** `expo-print`, `expo-sharing`, `expo-file-system/legacy`, `expo-document-picker`
 *   **UI/Animasyon:** `react-native-reanimated`, `react-native-svg`, `react-native-swipe-list-view`, `react-native-chart-kit`
 
 ## Kurulum

@@ -43,3 +43,7 @@ yarn-error.*
 
 .gemini/
 gha-creds-*.json
+
+# Custom AI Agent directories
+.agents/
+.planning/

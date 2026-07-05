@@ -68,8 +68,9 @@ export default function CameraScreen() {
     const latestLocation = photos[photos.length - 1]?.location;
     
     router.replace({
-      pathname: '/observations/1',
+      pathname: '/observations/[id]',
       params: { 
+        id: '1',
         lat: latestLocation?.latitude,
         lon: latestLocation?.longitude,
         alt: latestLocation?.altitude

@@ -98,6 +98,8 @@ export default function ProfileScreen() {
     activities, addActivity, updateActivity, removeActivity,
     // ID Format
     idFormat, setIdFormat, locationCode, setLocationCode,
+    // AI Ayarları
+    customApiKey, setCustomApiKey, aiModel, setAiModel,
   } = useSettingsStore();
 
   const [editingIdFormat, setEditingIdFormat] = useState(idFormat);
@@ -175,7 +177,7 @@ export default function ProfileScreen() {
         { text: 'İptal', style: 'cancel' },
         {
           text: 'Kaydet',
-          onPress: (val) => {
+          onPress: (val?: string) => {
             if (val?.trim()) onSave(val.trim());
           },
         },
@@ -273,6 +275,49 @@ export default function ProfileScreen() {
           onChangeText={setExpertName}
           placeholder="İSG Uzmanı Ad Soyad..."
         />
+      </View>
+
+      {/* ================================================
+          YENİ: Yapay Zeka Ayarları
+          ================================================ */}
+      <Text style={styles.sectionTitle}>Yapay Zeka Ayarları</Text>
+      <View style={styles.card}>
+        <Text style={styles.label}>Kendi Gemini API Anahtarınız (Opsiyonel)</Text>
+        <TextInput
+          style={styles.input}
+          value={customApiKey || ''}
+          onChangeText={setCustomApiKey}
+          placeholder="AI-..."
+          secureTextEntry={true}
+        />
+        <Text style={[styles.label, { marginTop: 12, marginBottom: 8 }]}>AI Motoru Seçimi</Text>
+        <View style={{ flexDirection: 'row', gap: 12 }}>
+          <TouchableOpacity
+            style={[
+              styles.modelOption,
+              aiModel === 'gemini-2.5-flash' && styles.modelOptionSelected
+            ]}
+            onPress={() => setAiModel('gemini-2.5-flash')}
+          >
+            <Ionicons name="flash-outline" size={20} color={aiModel === 'gemini-2.5-flash' ? colors.primary : colors.muted} />
+            <Text style={[styles.modelOptionText, aiModel === 'gemini-2.5-flash' && styles.modelOptionTextSelected]}>
+              Ücretsiz / Hızlı
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.modelOption,
+              aiModel === 'gemini-2.5-pro' && styles.modelOptionSelected
+            ]}
+            onPress={() => setAiModel('gemini-2.5-pro')}
+          >
+            <Ionicons name="sparkles-outline" size={20} color={aiModel === 'gemini-2.5-pro' ? colors.primary : colors.muted} />
+            <Text style={[styles.modelOptionText, aiModel === 'gemini-2.5-pro' && styles.modelOptionTextSelected]}>
+              Ücretli / Detaylı
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* ================================================
@@ -681,4 +726,29 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   saveFormatText: { color: 'white', fontWeight: '700', fontSize: 15 },
+  
+  // AI Settings
+  modelOption: {
+    flex: 1,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'white',
+  },
+  modelOptionSelected: {
+    borderColor: colors.primary,
+    backgroundColor: '#F0FDF4',
+  },
+  modelOptionText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.muted,
+    textAlign: 'center',
+  },
+  modelOptionTextSelected: {
+    color: colors.primary,
+  },
 });

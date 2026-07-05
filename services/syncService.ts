@@ -23,14 +23,14 @@ export const uploadFileWithSignedUrl = async (id: string, uri: string, remotePat
       throw new Error(signedUrlError?.message || 'Failed to create signed URL');
     }
     
-    const { signedUrl } = data;
+    const { signedUrl, token } = data;
     
     const response = await fetch(uri);
     const blob = await response.blob();
     
     const { error: uploadError } = await supabase.storage
       .from('observations')
-      .uploadToSignedUrl(signedUrl, blob);
+      .uploadToSignedUrl(remotePath, token, blob);
     
     if (uploadError) {
       throw uploadError;

@@ -1,6 +1,6 @@
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 
 import { ObservationItem } from '../store/observationStore';
 import { useSettingsStore } from '../store/settingsStore';
@@ -183,7 +183,7 @@ export async function generateObservationPDF(observation: ObservationItem) {
     try {
       const firstPhotoUri = observation.photos[0].uri;
       const base64Content = await FileSystem.readAsStringAsync(firstPhotoUri, {
-        encoding: FileSystem.EncodingType.Base64,
+        encoding: 'base64',
       });
       imageBase64 = `data:image/jpeg;base64,${base64Content}`;
     } catch (error) {

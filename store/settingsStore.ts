@@ -45,6 +45,10 @@ interface SettingsState {
   idFormat: string;
   locationCode: string; // ID'de kullanılacak kısa konum kodu (örn. "IST")
 
+  // Yeni: AI Ayarları
+  customApiKey: string;
+  aiModel: string;
+
   // --- Mevcut Setter'lar ---
   setUserName: (name: string) => void;
   setUserTitle: (title: string) => void;
@@ -73,6 +77,10 @@ interface SettingsState {
   // --- ID Format ---
   setIdFormat: (format: string) => void;
   setLocationCode: (code: string) => void;
+
+  // --- AI Ayarları ---
+  setCustomApiKey: (key: string) => void;
+  setAiModel: (model: string) => void;
 }
 
 const generateId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
@@ -88,6 +96,8 @@ export const useSettingsStore = create<SettingsState>()(
       companyLogo: null,
       idFormat: DEFAULT_ID_FORMAT,
       locationCode: 'IST',
+      customApiKey: '',
+      aiModel: 'gemini-2.5-flash',
 
       // Varsayılan lokasyonlar
       locations: [
@@ -215,6 +225,10 @@ export const useSettingsStore = create<SettingsState>()(
       // --- ID Format ---
       setIdFormat: (idFormat) => set({ idFormat }),
       setLocationCode: (locationCode) => set({ locationCode }),
+
+      // --- AI Ayarları ---
+      setCustomApiKey: (customApiKey) => set({ customApiKey }),
+      setAiModel: (aiModel) => set({ aiModel }),
     }),
     {
       name: 'settings-storage',
